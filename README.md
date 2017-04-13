@@ -1,5 +1,5 @@
 
-#Peter's Version of Video Object Recognition
+#Peter's Version of Video Object Recognition#
 
 1. Clone the repo into your local drive
 2. Download yolo.weights from pjreddie site 
