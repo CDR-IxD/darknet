@@ -9,6 +9,9 @@
 #include "demo.h"
 #include <sys/time.h>
 
+// additional include for file parsing
+#include <libgen.h>
+
 #define FRAMES 3
 
 #ifdef OPENCV
@@ -37,6 +40,10 @@ static float *predictions[FRAMES];
 static int demo_index = 0;
 static image images[FRAMES];
 static float *avg;
+
+// Additional global var to store file basename
+char *fileBaseName;
+int frameCount;
 
 void *fetch_in_thread(void *ptr)
 {
@@ -69,10 +76,18 @@ void *detect_in_thread(void *ptr)
         error("Last layer must produce detections\n");
     }
     if (nms > 0) do_nms(boxes, probs, l.w*l.h*l.n, l.classes, nms);
-    printf("\033[2J");
-    printf("\033[1;1H");
-    printf("\nFPS:%.1f\n",fps);
-    printf("Objects:\n\n");
+    /* Peter modified code starting here, removed code that deletes previous lines, changes it to print only the frame detection speed */
+    // printf("\033[2J");
+    // printf("\033[1;1H");
+    // printf("\nFPS:%.1f\n",fps);
+    // printf("Objects:\n\n");
+
+    // note the below frame count is actually NOT THREAD SECURE!!!
+    frameCount++;
+    FILE *fp = fopen(fileBaseName, "a+");
+    printf("Frame Number: %d\n", frameCount);
+    fprintf(fp, "Frame Number: %d\n", frameCount);
+    fclose(fp);
 
     images[demo_index] = det;
     det = images[(demo_index + FRAMES/2 + 1)%FRAMES];
@@ -94,6 +109,33 @@ double get_wall_time()
 
 void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const char *filename, char **names, int classes, int frame_skip, char *prefix, float hier_thresh)
 {
+
+    /* Additional code from Peter
+    File parsing and creation added below
+    */
+
+    // note, the filename from demo input is actually the full file path.
+    char *dirc = strdup(filename);
+    // above line is redundant
+    char *basec = strdup(filename);
+    char *baseName = basename(basec);
+    char *appendToFront = "output_";
+    char *appendToBack = ".txt";
+    int lengthName = strlen(baseName) + strlen(appendToBack) + strlen(appendToFront);
+    fileBaseName = malloc(lengthName);
+    fileBaseName[0] = '\0';
+    strcat(fileBaseName, appendToFront);
+    strcat(fileBaseName, baseName);
+    strcat(fileBaseName, appendToBack);
+
+    FILE *fp = fopen(fileBaseName, "w+");
+    // note this destroys any existing file.
+
+    // following test lines.
+    fprintf(fp, "This is testing for fprintf...\n");
+    fflush(fp);
+    fclose(fp);
+
     //skip = frame_skip;
     image **alphabet = load_alphabet();
     int delay = frame_skip;
@@ -154,7 +196,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
     int count = 0;
     if(!prefix){
-        cvNamedWindow("Demo", CV_WINDOW_NORMAL); 
+        cvNamedWindow("Demo", CV_WINDOW_NORMAL);
         cvMoveWindow("Demo", 0, 0);
         cvResizeWindow("Demo", 1352, 1013);
     }
@@ -173,7 +215,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
                 if (c == 10){
                     if(frame_skip == 0) frame_skip = 60;
                     else if(frame_skip == 4) frame_skip = 0;
-                    else if(frame_skip == 60) frame_skip = 4;   
+                    else if(frame_skip == 60) frame_skip = 4;
                     else frame_skip = 0;
                 }
             }else{
@@ -213,6 +255,9 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
             before = after;
         }
     }
+    // freeing allocated memory.
+    free(dirc);
+    free(basec);
 }
 #else
 void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const char *filename, char **names, int classes, int frame_skip, char *prefix, float hier_thresh)
@@ -220,4 +265,3 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
     fprintf(stderr, "Demo needs OpenCV for webcam images.\n");
 }
 #endif
-
