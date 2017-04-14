@@ -11,7 +11,7 @@ wget http://pjreddie.com/media/files/yolo.weights
 ```
 ./darknet detector demo cfg/coco.data cfg/yolo.cfg yolo.weights "YOUR_VIDEO_FILE_HERE"
 ```
-5. The output text file should be in the root of darknet with th ename Output_YOUR_VIDEO_FILE_HERE.txt as the name. 
+5. The output text file should be in the root of darknet with the name Output_YOUR_VIDEO_FILE_HERE.txt as the name. 
 
 _______________________________________________________________________________
 ![Darknet Logo](http://pjreddie.com/media/files/darknet-black-small.png)
