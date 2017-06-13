@@ -13,6 +13,13 @@ wget http://pjreddie.com/media/files/yolo.weights
 ```
 5. The output text file should be in the root of darknet with the name Output_YOUR_VIDEO_FILE_HERE.txt as the name. 
 
+
+# Notes on how to further modify the program. 
+demo.c is where I am pulling the video file name in order to append output_XXXXX.txt to the file name. 
+Be aware that demo crashes on webcam streams for my version because the video file name is empty (which will cause a seg fault)
+
+image.c draw_detection is where all the information darknet uses to draw boxes. If you want to print more information form each frame, grab the information from the arguments passed into darw_boxes. 
+
 _______________________________________________________________________________
 ![Darknet Logo](http://pjreddie.com/media/files/darknet-black-small.png)
 
